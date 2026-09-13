@@ -9,12 +9,14 @@ void* CameraServiceExtFactory::sExtObject = nullptr;
 int (*CameraServiceExtFactory::sOnTransactFunc)(void*, uint32_t, const Parcel&, Parcel*, uint32_t) = nullptr;
 
 void CameraServiceExtFactory::ensureLoaded() {
-    if (sFunctionTable != nullptr) return;
+    static bool sTriedLoad = false;
+    if (sFunctionTable != nullptr || sTriedLoad) return;
+    sTriedLoad = true;
 
-    const char* libPath = "system_ext/lib64/libcsextimpl.so";
+    const char* libPath = "/system_ext/lib64/libcsextimpl.so";
     void* handle = dlopen(libPath, RTLD_NOW);
     if (handle == nullptr) {
-        ALOGE("CameraServiceExtFactory: dlopen failed: %s", dlerror());
+        ALOGV("CameraServiceExtFactory: extension not present (%s)", dlerror());
         return;
     }
     ALOGI("CameraServiceExtFactory: dlopen succeeded, handle=%p", handle);
